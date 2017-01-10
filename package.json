@@ -1,0 +1,36 @@
+{
+  "name": "redux-promise-counter",
+  "version": "1.0.0",
+  "description": "Keep track of unresolved promises in Redux Actions. Useful for Server Side Rendering.",
+  "main": "lib/index.js",
+  "files": [
+    "src",
+    "lib"
+  ],
+  "scripts": {
+    "clean": "rimraf lib",
+    "build": "npm run build:commonjs",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "posttest": "npm run lint",
+    "lint": "eslint src test",
+    "prepublish": "npm run clean && npm test && npm run build",
+    "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir lib"
+  },
+  "repository": "git@github.com:bitgenics/redux-promise-counter.git",
+  "author": "Erwin van der Koogh <erwin@bitgenics.io>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
+    "cross-env": "^3.1.4",
+    "eslint": "^3.13.1",
+    "eslint-config-airbnb": "^14.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^3.0.2",
+    "eslint-plugin-react": "^6.9.0",
+    "jest": "^18.1.0",
+    "rimraf": "^2.5.4"
+  },
+  "dependencies": {}
+}
