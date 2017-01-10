@@ -37,3 +37,9 @@ jspm_packages
 .node_repl_history
 
 lib
+
+# Webstorm
+.idea/
+
+# Joe backup files
+*~ 
