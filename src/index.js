@@ -5,28 +5,27 @@ function isPromise(thing) {
 function createPromiseCounter(callback) {
   return ({ getState }) => {
     let pendingPromises = 0;
-    // in case there are no promises we want to fire
-    // the callback in the next Tick
-    const timeout = setTimeout(() => {
-      if (pendingPromises === 0) {
-        callback(getState());
-      }
-    }, 0);
+    let timeout;
+
+    const checkPromises = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (pendingPromises < 1) {
+          callback(getState());
+        }
+      }, 0);
+    };
+    checkPromises();
     return next => (action) => {
       const retval = next(action);
 
       const promiseFulfill = () => {
         pendingPromises -= 1;
-        // console.log("Pending Promises: " + pendingPromises);
-        if (pendingPromises < 1) {
-          clearTimeout(timeout);
-          callback(getState());
-        }
+        checkPromises();
       };
 
       if (isPromise(retval)) {
         pendingPromises += 1;
-        // console.log("Pending Promises: " + pendingPromises);
         retval.then(promiseFulfill, promiseFulfill);
       }
       return retval;

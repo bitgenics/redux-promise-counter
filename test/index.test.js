@@ -38,7 +38,8 @@ test('Call callback next tick if no pending promises', () => {
   getState.mockReturnValue(state);
   const promiseCounter = createPromiseCounter(callback)({ getState })(jest.fn());
   promiseCounter({ action: 'blah' });
-  jest.runTimersToTime(1);
+  expect(callback).not.toHaveBeenCalled();
+  jest.runTimersToTime(0);
   expect(callback).toHaveBeenCalledWith(state);
 });
 
@@ -46,58 +47,94 @@ test('Call callback when one promise succeeds', () => {
   jest.useRealTimers();
   const callback = jest.fn();
   const promise = new Promise((resolve) => {
-    setTimeout(() => { resolve('Stuff!'); }, 50);
+    setTimeout(() => { resolve('Stuff!'); }, 20);
   });
-  const next = jest.fn();
-  next.mockReturnValue(promise);
-  const getState = jest.fn();
+  const next = jest.fn(() => promise);
   const state = { state: 'Stuff' };
-  getState.mockReturnValue(state);
+  const getState = jest.fn(() => state);
   const promiseCounter = createPromiseCounter(callback)({ getState })(next);
   promiseCounter({ action: 'blah' });
   expect(callback).not.toHaveBeenCalled();
-  return promise.then(() => {
-    expect(callback).toHaveBeenCalledWith(state);
-  });
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve('s');
+    }, 30);
+  }).then(() => { expect(callback).toHaveBeenCalledWith(state); });
 });
 
 test('Call callback when one promise rejects', () => {
   jest.useRealTimers();
   const callback = jest.fn();
   const promise = new Promise((resolve, reject) => {
-    setTimeout(() => { reject(Error('Stuff!')); }, 50);
+    setTimeout(() => { reject(Error('Stuff!')); }, 20);
   });
   const next = jest.fn(() => promise);
-  const getState = jest.fn();
   const state = { state: 'Stuff' };
-  getState.mockReturnValue(state);
+  const getState = jest.fn(() => state);
   const promiseCounter = createPromiseCounter(callback)({ getState })(next);
   promiseCounter({ action: 'blah' });
   expect(callback).not.toHaveBeenCalled();
-  return promise.then(null, () => {
-    expect(callback).toHaveBeenCalledWith(state);
-  });
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve('s');
+    }, 30);
+  }).then(() => { expect(callback).toHaveBeenCalledWith(state); });
 });
 
-test('Call callback once after all promises have fulfilled', () => {
+// Due to the asynchronous nature, if these tests fail they time out
+// but not with the correct assertion.
+test('Call callback once after all promises have fulfilled', (done) => {
   jest.useRealTimers();
   const callback = jest.fn();
-  const promise1 = new Promise((_, reject) => {
-    setTimeout(() => { reject(Error('Stuff!')); }, 50);
+  const promise1 = new Promise((resolve) => {
+    setTimeout(() => { resolve('Stuff!'); }, 10);
   });
   const promise2 = new Promise((resolve) => {
-    setTimeout(() => { resolve('Good!'); }, 60);
+    setTimeout(() => { resolve('Good!'); }, 20);
   });
   const next = jest.fn();
   next.mockReturnValueOnce(promise1).mockReturnValueOnce(promise2);
-  const getState = jest.fn();
   const state = { state: 'Stuff' };
-  getState.mockReturnValue(state);
+  const getState = jest.fn(() => state);
   const promiseCounter = createPromiseCounter(callback)({ getState })(next);
   promiseCounter({ action: 'blah' });
+  promiseCounter({ action: 'bbbb' });
   expect(callback).not.toHaveBeenCalled();
-  return Promise.all([promise1, promise2]).then(null, () => {
+  setTimeout(() => {
+    expect(callback).not.toHaveBeenCalled();
+  }, 15);
+  setTimeout(() => {
     expect(callback).toHaveBeenCalledWith(state);
+    done();
+  }, 25);
+});
+
+// Due to the asynchronous nature, if these tests fail they time out
+// but not with the correct assertion.
+test('Call callback once after all sequential promises have fulfilled', (done) => {
+  jest.useRealTimers();
+  const callback = jest.fn();
+  const promise1 = new Promise((resolve) => {
+    setTimeout(() => { resolve('Stuff!'); }, 10);
+  }).then(() => {
+    new Promise((resolve) => {  // eslint-disable-line no-new
+      setTimeout(() => { resolve('Good!'); }, 10);
+    });
   });
+  const next = jest.fn();
+  next.mockReturnValueOnce(promise1);
+  const state = { state: 'Stuff' };
+  const getState = jest.fn(() => state);
+  const promiseCounter = createPromiseCounter(callback)({ getState })(next);
+  promiseCounter({ action: 'blah' });
+  promiseCounter({ action: 'bbbb' });
+  expect(callback).not.toHaveBeenCalled();
+  setTimeout(() => {
+    expect(callback).not.toHaveBeenCalled();
+  }, 15);
+  setTimeout(() => {
+    expect(callback).toHaveBeenCalledWith(state);
+    done();
+  }, 25);
 });
 /* eslint-enable no-undef */
