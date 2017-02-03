@@ -1,6 +1,6 @@
 {
   "name": "redux-promise-counter",
-  "version": "1.0.1",
+  "version": "1.1.1",
   "description": "Keep track of unresolved promises in Redux Actions. Useful for Server Side Rendering.",
   "main": "lib/index.js",
   "files": [
