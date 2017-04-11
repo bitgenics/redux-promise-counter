@@ -7,21 +7,21 @@ function createPromiseCounter(callback) {
     let pendingPromises = 0;
     let timeout;
 
-    const checkPromises = () => {
+    const checkPromises = (promisesFired) => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         if (pendingPromises < 1) {
-          callback(getState());
+          callback(getState(), promisesFired);
         }
       }, 0);
     };
-    checkPromises();
+    checkPromises(false);
     return next => (action) => {
       const retval = next(action);
 
       const promiseFulfill = () => {
         pendingPromises -= 1;
-        checkPromises();
+        checkPromises(true);
       };
 
       if (isPromise(retval)) {

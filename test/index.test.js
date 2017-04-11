@@ -40,7 +40,7 @@ test('Call callback next tick if no pending promises', () => {
   promiseCounter({ action: 'blah' });
   expect(callback).not.toHaveBeenCalled();
   jest.runTimersToTime(0);
-  expect(callback).toHaveBeenCalledWith(state);
+  expect(callback).toHaveBeenCalledWith(state, false);
 });
 
 test('Call callback when one promise succeeds', () => {
@@ -59,7 +59,7 @@ test('Call callback when one promise succeeds', () => {
     setTimeout(() => {
       resolve('s');
     }, 30);
-  }).then(() => { expect(callback).toHaveBeenCalledWith(state); });
+  }).then(() => { expect(callback).toHaveBeenCalledWith(state, true); });
 });
 
 test('Call callback when one promise rejects', () => {
@@ -78,7 +78,7 @@ test('Call callback when one promise rejects', () => {
     setTimeout(() => {
       resolve('s');
     }, 30);
-  }).then(() => { expect(callback).toHaveBeenCalledWith(state); });
+  }).then(() => { expect(callback).toHaveBeenCalledWith(state, true); });
 });
 
 // Due to the asynchronous nature, if these tests fail they time out
@@ -104,7 +104,7 @@ test('Call callback once after all promises have fulfilled', (done) => {
     expect(callback).not.toHaveBeenCalled();
   }, 15);
   setTimeout(() => {
-    expect(callback).toHaveBeenCalledWith(state);
+    expect(callback).toHaveBeenCalledWith(state, true);
     done();
   }, 25);
 });
@@ -133,7 +133,7 @@ test('Call callback once after all sequential promises have fulfilled', (done) =
     expect(callback).not.toHaveBeenCalled();
   }, 15);
   setTimeout(() => {
-    expect(callback).toHaveBeenCalledWith(state);
+    expect(callback).toHaveBeenCalledWith(state, true);
     done();
   }, 25);
 });
